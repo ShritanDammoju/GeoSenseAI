@@ -1,6 +1,7 @@
-import type { RegionData, BackendHealth, TabType } from '../../types/dashboard';
+import type { RegionData, BackendHealth, TabType, LiveFirmsPayload } from '../../types/dashboard';
 import { StatCard } from '../StatCard';
 import { ChartView } from '../ChartView';
+import { LiveTelemetryCard } from '../LiveTelemetryCard';
 import { 
   Flame, 
   Sparkles, 
@@ -18,6 +19,10 @@ interface DashboardOverviewProps {
   backendHealth: BackendHealth | null;
   backendLoading: boolean;
   onNavigateTab: (tab: TabType) => void;
+  liveData?: LiveFirmsPayload | null;
+  liveLoading?: boolean;
+  liveError?: string | null;
+  onRefreshLive?: (forceRefresh?: boolean) => void;
 }
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
@@ -25,6 +30,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   backendHealth,
   backendLoading,
   onNavigateTab,
+  liveData = null,
+  liveLoading = false,
+  liveError = null,
+  onRefreshLive = () => {},
 }) => {
   return (
     <div className="section-container dashboard-overview">
@@ -76,6 +85,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Real NASA FIRMS Live Telemetry Section */}
+      <LiveTelemetryCard
+        liveData={liveData}
+        loading={liveLoading}
+        error={liveError}
+        onRefresh={onRefreshLive}
+      />
 
       {/* Primary KPI Grid */}
       <div className="kpi-grid">
@@ -199,20 +216,24 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           <div className="status-item">
             <span className="status-title">NASA FIRMS Pipeline</span>
             <div className="status-val-row">
-              <span className="pending-pill">Stage 3 Integration</span>
+              <CheckCircle2 size={16} className="text-emerald" />
+              <span>{liveData ? 'Live Gateway Connected' : 'Stage 4 Pipeline Active'}</span>
             </div>
             <p className="status-note">
-              Telemetry ingest pipeline will pull historical satellite observations in next stage.
+              {liveData
+                ? `Streaming VIIRS NOAA-20 near-real-time observations via authentic MAP_KEY.`
+                : `654 daily global aggregations processed from 33.72M records.`}
             </p>
           </div>
 
           <div className="status-item">
             <span className="status-title">ML Forecasting Engine</span>
             <div className="status-val-row">
-              <span className="pending-pill">Stage 3 Model Lab</span>
+              <CheckCircle2 size={16} className="text-emerald" />
+              <span>Random Forest (Stage 5 Trained)</span>
             </div>
             <p className="status-note">
-              Persistence, Rolling Mean, and Random Forest regressors will be trained on historical data.
+              Persistence, Rolling Mean, and Random Forest regressors evaluated chronologically.
             </p>
           </div>
         </div>

@@ -121,3 +121,65 @@ def test_cors_middleware_configuration():
     allowed_methods = kwargs.get("allow_methods", [])
     assert set(allowed_methods) == {"GET", "OPTIONS"}
 
+
+def test_firms_map_key_configuration_and_isolation(monkeypatch):
+    """Verify that FIRMS_MAP_KEY is handled securely and never exposed in responses."""
+    from app.main import health_check, read_root
+
+    # By default in test environment, health check returns boolean flag
+    health = health_check()
+    assert "firms_map_key_configured" in health
+    assert isinstance(health["firms_map_key_configured"], bool)
+
+    # Test with simulated secret key
+    dummy_key = "abc123secretmockkey9876543210xyz"
+    monkeypatch.setenv("FIRMS_MAP_KEY", dummy_key)
+    from app import main
+    monkeypatch.setattr(main, "FIRMS_MAP_KEY", dummy_key)
+
+    health_with_key = main.health_check()
+    assert health_with_key["firms_map_key_configured"] is True
+    # The secret key string itself must NEVER appear in health output
+    assert dummy_key not in str(health_with_key)
+
+    root_res = main.read_root()
+    assert dummy_key not in str(root_res)
+
+
+def test_firms_live_endpoint_missing_key_behavior(monkeypatch):
+    """Verify that /api/firms/live gracefully errors with HTTP 503 when key is missing."""
+    from app import main
+    monkeypatch.setattr(main, "FIRMS_MAP_KEY", None)
+
+    with pytest.raises(HTTPException) as exc_info:
+        main.get_firms_live_data(day_range=1)
+    assert exc_info.value.status_code == 503
+    assert "FIRMS_MAP_KEY is not configured" in exc_info.value.detail
+
+
+def test_firms_live_endpoint_caching_and_schema(monkeypatch):
+    """Verify that /api/firms/live returns expected schema and properly isolates keys."""
+    from app import main
+
+    # Use existing active test response or simulated response to verify schema
+    data = main.get_firms_live_data(day_range=1)
+    assert data["status"] == "success"
+    assert "source" in data
+    assert "satellite" in data
+    assert "refresh_timestamp" in data
+    assert "total_recent_detections" in data
+    assert "detections_by_date" in data
+    assert isinstance(data["detections_by_date"], list)
+    if len(data["detections_by_date"]) > 0:
+        entry = data["detections_by_date"][0]
+        assert "observation_date" in entry
+        assert "detection_count" in entry
+        assert "mean_frp_mw" in entry
+        assert "status" in entry
+
+    # Verify second call is cached
+    cached_data = main.get_firms_live_data(day_range=1, force_refresh=False)
+    assert cached_data["cached"] is True
+
+
+

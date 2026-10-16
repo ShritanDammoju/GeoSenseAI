@@ -118,6 +118,7 @@ export interface BackendHealth {
   stage?: string;
   processed_data_available?: boolean;
   models_available?: boolean;
+  firms_map_key_configured?: boolean;
 }
 
 export interface NextDayForecastPayload {
@@ -251,5 +252,27 @@ export interface CountrySummaryRecord {
   max_date: string;
   days_with_detections: number;
 }
+
+export interface LiveFirmsDetectionDate {
+  observation_date: string;
+  detection_count: number;
+  mean_frp_mw: number;
+  status: string;
+  note: string;
+}
+
+export interface LiveFirmsPayload {
+  status: string;
+  source: string;
+  satellite: string;
+  instrument: string;
+  cached: boolean;
+  refresh_timestamp: string;
+  total_recent_detections: number;
+  days_reported: number;
+  detections_by_date: LiveFirmsDetectionDate[];
+  data_notice: string;
+}
+
 
 

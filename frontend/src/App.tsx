@@ -7,7 +7,8 @@ import type {
   RegionData,
   SummaryMetricsResponse,
   ProcessedDailyRecord,
-  NextDayForecastPayload 
+  NextDayForecastPayload,
+  LiveFirmsPayload
 } from './types/dashboard';
 import { DEMO_REGIONS } from './data/demoData';
 import { Navbar } from './components/Navbar';
@@ -34,6 +35,11 @@ export function App() {
 
   // Authentic Processed NASA FIRMS Data
   const [authenticRegion, setAuthenticRegion] = useState<RegionData | null>(null);
+
+  // Real NASA FIRMS Live Telemetry Stream
+  const [liveFirmsData, setLiveFirmsData] = useState<LiveFirmsPayload | null>(null);
+  const [liveLoading, setLiveLoading] = useState<boolean>(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
 
   const fetchProcessedData = async () => {
     try {
@@ -111,6 +117,30 @@ export function App() {
     }
   };
 
+  const fetchLiveFirmsData = async (forceRefresh = false, signal?: AbortSignal) => {
+    setLiveLoading(true);
+    setLiveError(null);
+    try {
+      const url = forceRefresh
+        ? 'http://127.0.0.1:8000/api/firms/live?day_range=1&force_refresh=true'
+        : 'http://127.0.0.1:8000/api/firms/live?day_range=1';
+      const resp = await fetch(url, { signal });
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.detail || `Server responded with HTTP ${resp.status}`);
+      }
+      const data: LiveFirmsPayload = await resp.json();
+      setLiveFirmsData(data);
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError') return;
+      const msg = err instanceof Error ? err.message : 'Failed to reach NASA FIRMS live feed';
+      setLiveError(msg);
+      // Preserves last successful liveFirmsData so dashboard displays stale data rather than blanking
+    } finally {
+      setLiveLoading(false);
+    }
+  };
+
   const checkBackendHealth = async () => {
     setBackendLoading(true);
     try {
@@ -118,7 +148,7 @@ export function App() {
       if (response.ok) {
         const data = await response.json();
         setBackendHealth(data);
-        await fetchProcessedData();
+        await Promise.all([fetchProcessedData(), fetchLiveFirmsData(false)]);
       } else {
         setBackendHealth(null);
       }
@@ -131,25 +161,42 @@ export function App() {
 
   useEffect(() => {
     let isMounted = true;
+    const controller = new AbortController();
+
     const init = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/health');
+        const response = await fetch('http://127.0.0.1:8000/health', { signal: controller.signal });
         if (isMounted) {
           if (response.ok) {
             const data = await response.json();
             setBackendHealth(data);
-            await fetchProcessedData();
+            await Promise.all([
+              fetchProcessedData(),
+              fetchLiveFirmsData(false, controller.signal)
+            ]);
           } else {
             setBackendHealth(null);
           }
         }
-      } catch {
+      } catch (err: unknown) {
+        if ((err as Error)?.name === 'AbortError') return;
         if (isMounted) setBackendHealth(null);
       }
     };
     init();
+
+    // Automated live telemetry refresh every 30 minutes (respects backend 10-minute cache)
+    const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+    const intervalId = setInterval(() => {
+      if (isMounted) {
+        fetchLiveFirmsData(false);
+      }
+    }, THIRTY_MINUTES_MS);
+
     return () => {
       isMounted = false;
+      controller.abort();
+      clearInterval(intervalId);
     };
   }, []);
 
@@ -203,6 +250,10 @@ export function App() {
                 backendHealth={backendHealth}
                 backendLoading={backendLoading}
                 onNavigateTab={setActiveTab}
+                liveData={liveFirmsData}
+                liveLoading={liveLoading}
+                liveError={liveError}
+                onRefreshLive={fetchLiveFirmsData}
               />
             )}
 

@@ -77,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           ) : backendHealth ? (
             <span className="status-badge online" title="Backend is online and serving /health">
               <span className="dot dot-green"></span>
-              Online (Port 8000)
+              Online {backendHealth.firms_map_key_configured ? '(NASA Live)' : '(Port 8000)'}
             </span>
           ) : (
             <span className="status-badge offline" title="Backend offline. Start with uvicorn app.main:app">

@@ -3,4 +3,11 @@ __pycache__/
 *$py.class
 venv/
 .env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.cert
+secrets/
 .pytest_cache/

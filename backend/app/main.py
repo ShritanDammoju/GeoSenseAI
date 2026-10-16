@@ -1,9 +1,43 @@
+import io
 import json
 import os
-from typing import Optional
+import time
+import urllib.error
+import urllib.request
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
+
+# Load environment variables from local .env file (supports backend/.env and root .env)
+def _load_env_file() -> None:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    candidate_paths = [
+        os.path.join(current_dir, "..", "..", ".env"),  # Project root .env
+        os.path.join(current_dir, "..", ".env"),        # backend/.env
+    ]
+    for env_path in candidate_paths:
+        norm_path = os.path.abspath(env_path)
+        if os.path.isfile(norm_path):
+            try:
+                with open(norm_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            key, val = line.split("=", 1)
+                            key = key.strip()
+                            val = val.strip().strip("'\"")
+                            if key and key not in os.environ:
+                                os.environ[key] = val
+            except Exception:
+                pass
+
+_load_env_file()
+
+# NASA FIRMS API MAP_KEY configuration
+# Reads securely from FIRMS_MAP_KEY environment variable. Never exposed to frontend or logged.
+FIRMS_MAP_KEY: Optional[str] = os.getenv("FIRMS_MAP_KEY")
 
 app = FastAPI(
     title="GeoSense AI Backend",
@@ -121,7 +155,8 @@ def read_root():
             "countries": "/api/countries",
             "next_day_forecast": "/api/forecast/next-day",
             "model_evaluation": "/api/models/evaluation",
-            "data_quality": "/api/data-quality"
+            "data_quality": "/api/data-quality",
+            "firms_live": "/api/firms/live"
         }
     }
 
@@ -131,13 +166,15 @@ def health_check():
     """Health check endpoint confirming service status, dataset availability, and model readiness."""
     data_available = os.path.isfile(GLOBAL_CSV_PATH)
     models_available = os.path.isfile(EVAL_RESULTS_PATH) and os.path.isfile(MODEL_FILE_PATH)
+    firms_configured = bool(FIRMS_MAP_KEY and FIRMS_MAP_KEY.strip())
     return {
         "status": "healthy",
         "service": "GeoSense AI Backend",
         "message": "Backend is running successfully",
         "stage": "Stage 5 Forecasting Models Trained & Connected",
         "processed_data_available": data_available,
-        "models_available": models_available
+        "models_available": models_available,
+        "firms_map_key_configured": firms_configured
     }
 
 
@@ -378,5 +415,149 @@ def get_data_quality_audit():
             ]
         }
     }
+
+
+# In-memory cache for live NASA FIRMS API responses (prevents quota exhaustion)
+_FIRMS_LIVE_CACHE: Dict[str, Any] = {}
+_FIRMS_CACHE_TIMESTAMP: float = 0.0
+_FIRMS_CACHE_TTL_SECONDS: float = 600.0  # 10 minutes cache TTL
+
+
+def fetch_nasa_firms_live(day_range: int = 1, force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Fetch recent global Near-Real-Time active fire observations from official NASA FIRMS API.
+    Uses VIIRS_NOAA20_NRT (NOAA-20 / JPSS-1, 375m spatial resolution).
+    Counts detections by acquisition date and computes mean Fire Radiative Power (MW).
+    """
+    global _FIRMS_LIVE_CACHE, _FIRMS_CACHE_TIMESTAMP
+
+    if not FIRMS_MAP_KEY or not FIRMS_MAP_KEY.strip():
+        raise HTTPException(
+            status_code=503,
+            detail="FIRMS_MAP_KEY is not configured in local environment (.env). Enter your NASA FIRMS key to enable live telemetry."
+        )
+
+    now = time.time()
+    cache_key = f"world_{day_range}"
+    if not force_refresh and cache_key in _FIRMS_LIVE_CACHE and (now - _FIRMS_CACHE_TIMESTAMP) < _FIRMS_CACHE_TTL_SECONDS:
+        cached_result = _FIRMS_LIVE_CACHE[cache_key].copy()
+        cached_result["cached"] = True
+        return cached_result
+
+    # Construct official NASA FIRMS Area API URL
+    firms_url = f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/{FIRMS_MAP_KEY}/VIIRS_NOAA20_NRT/world/{day_range}"
+    req = urllib.request.Request(
+        firms_url,
+        headers={"User-Agent": "GeoSenseAI/1.2 (Environmental Research Platform)"}
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            if resp.status != 200:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"NASA FIRMS API returned unexpected HTTP status {resp.status}."
+                )
+            raw_bytes = resp.read()
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            raise HTTPException(
+                status_code=502,
+                detail="NASA FIRMS API authentication rejected. Please check FIRMS_MAP_KEY validity in .env."
+            )
+        elif e.code == 429:
+            raise HTTPException(
+                status_code=429,
+                detail="NASA FIRMS API rate limit reached. Please wait before retrying."
+            )
+        else:
+            raise HTTPException(
+                status_code=502,
+                detail=f"NASA FIRMS API error (HTTP {e.code})."
+            )
+    except urllib.error.URLError as e:
+        raise HTTPException(
+            status_code=504,
+            detail=f"Failed to connect to NASA FIRMS API: {str(e.reason)}"
+        )
+    except TimeoutError:
+        raise HTTPException(
+            status_code=504,
+            detail="Request to NASA FIRMS API timed out after 45 seconds."
+        )
+
+    try:
+        df = pd.read_csv(io.BytesIO(raw_bytes))
+    except Exception:
+        text_preview = raw_bytes[:200].decode("utf-8", errors="ignore").strip()
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to parse NASA FIRMS response. Response preview: {text_preview}"
+        )
+
+    refresh_ts = datetime.now(timezone.utc).isoformat()
+
+    if df.empty or "acq_date" not in df.columns:
+        result = {
+            "status": "success",
+            "source": "NASA FIRMS (VIIRS NOAA-20 / JPSS-1 Near-Real-Time)",
+            "satellite": "NOAA-20 (JPSS-1)",
+            "instrument": "VIIRS (375m)",
+            "cached": False,
+            "refresh_timestamp": refresh_ts,
+            "total_recent_detections": 0,
+            "days_reported": 0,
+            "detections_by_date": [],
+            "data_notice": "No active thermal anomalies reported by NASA FIRMS for the requested period."
+        }
+        _FIRMS_LIVE_CACHE[cache_key] = result
+        _FIRMS_CACHE_TIMESTAMP = now
+        return result
+
+    # Aggregate detections by acquisition date
+    detections_by_date = []
+    for date_val, group in df.groupby("acq_date"):
+        count = int(len(group))
+        mean_frp = round(float(group["frp"].mean()), 2) if "frp" in group.columns and not group["frp"].isna().all() else 0.0
+        detections_by_date.append({
+            "observation_date": str(date_val),
+            "detection_count": count,
+            "mean_frp_mw": mean_frp,
+            "status": "partial_or_near_real_time",
+            "note": "Downlinked telemetry is updated continuously as satellite orbits complete."
+        })
+
+    detections_by_date.sort(key=lambda x: x["observation_date"])
+
+    result = {
+        "status": "success",
+        "source": "NASA FIRMS (VIIRS NOAA-20 / JPSS-1 Near-Real-Time)",
+        "satellite": "NOAA-20 (JPSS-1)",
+        "instrument": "VIIRS (375m)",
+        "cached": False,
+        "refresh_timestamp": refresh_ts,
+        "total_recent_detections": int(len(df)),
+        "days_reported": len(detections_by_date),
+        "detections_by_date": detections_by_date,
+        "data_notice": "NASA FIRMS NRT data represents thermal anomalies observed during sun-synchronous satellite overpasses (~1:30 PM/AM local solar time). Current day data is partial and subject to downlink timing."
+    }
+
+    _FIRMS_LIVE_CACHE[cache_key] = result
+    _FIRMS_CACHE_TIMESTAMP = now
+    return result
+
+
+@app.get("/api/firms/live")
+def get_firms_live_data(
+    day_range: int = Query(default=1, ge=1, le=5, description="Number of recent days to fetch from NASA FIRMS (1 to 5)"),
+    force_refresh: bool = Query(default=False, description="Bypass cache and force fresh query to NASA FIRMS API")
+):
+    """
+    Fetch recent global Near-Real-Time active fire observations from official NASA FIRMS API.
+    Uses the authenticated FIRMS_MAP_KEY from the local environment (.env).
+    Returns detection counts by acquisition date, mean FRP (MW), and refresh timestamp.
+    """
+    return fetch_nasa_firms_live(day_range=day_range, force_refresh=force_refresh)
+
 
 
