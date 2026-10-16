@@ -1,0 +1,45 @@
+# Node dependencies & builds
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python virtual environment & cache
+backend/venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*/.pytest_cache/
+
+# Large Local NASA Datasets & Archives (Preserved locally, excluded from GitHub)
+DATA/raw/
+DATA/raw/*
+*.zip
+*.tar.gz
+*.7z
+
+# Scratch files & Logs
+scratch/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files & Secrets
+.env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.cert
+secrets/
+
+# IDE & OS metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

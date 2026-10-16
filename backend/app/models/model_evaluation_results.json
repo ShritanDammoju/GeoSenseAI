@@ -1,0 +1,739 @@
+{
+  "metadata": {
+    "satellite_product": "NOAA-20 (JPSS-1) VIIRS 375m",
+    "coverage_scope": "Global Hotspot Detections (complete days)",
+    "total_complete_days": 646,
+    "date_range": {
+      "start": "2025-01-08",
+      "end": "2026-10-15"
+    },
+    "train_days": 509,
+    "val_days": 61,
+    "test_days": 76,
+    "split_dates": {
+      "train_end": "2026-05-31",
+      "val_start": "2026-06-01",
+      "val_end": "2026-07-31",
+      "test_start": "2026-08-01",
+      "test_end": "2026-10-15"
+    }
+  },
+  "evaluation_summary": {
+    "test_metrics": {
+      "random_forest": {
+        "model_name": "Random Forest Regressor",
+        "mae": 9578.47,
+        "rmse": 12712.42,
+        "mape_percent": 12.84,
+        "r2_score": 0.7336,
+        "sample_count": 76,
+        "min_true_value": 25794.0,
+        "max_true_value": 134678.0,
+        "mean_true_value": 75928.07
+      },
+      "previous_day_baseline": {
+        "model_name": "Previous-Day Baseline (Persistence)",
+        "mae": 9270.45,
+        "rmse": 12802.86,
+        "mape_percent": 12.95,
+        "r2_score": 0.7298,
+        "sample_count": 76,
+        "min_true_value": 25794.0,
+        "max_true_value": 134678.0,
+        "mean_true_value": 75928.07
+      },
+      "seven_day_moving_avg": {
+        "model_name": "7-Day Moving Average Baseline",
+        "mae": 13795.8,
+        "rmse": 17309.14,
+        "mape_percent": 19.96,
+        "r2_score": 0.5061,
+        "sample_count": 76,
+        "min_true_value": 25794.0,
+        "max_true_value": 134678.0,
+        "mean_true_value": 75928.07
+      }
+    },
+    "validation_metrics": {
+      "random_forest": {
+        "model_name": "Random Forest (Validation)",
+        "mae": 6048.1,
+        "rmse": 8826.04,
+        "mape_percent": 10.03,
+        "r2_score": 0.7875,
+        "sample_count": 61,
+        "min_true_value": 25059.0,
+        "max_true_value": 111994.0,
+        "mean_true_value": 56070.48
+      }
+    },
+    "comparison": {
+      "rf_vs_persistence_mae_improvement": -308.02,
+      "rf_vs_persistence_mae_pct": -3.32,
+      "rf_vs_ma7_mae_improvement": 4217.33,
+      "rf_vs_ma7_mae_pct": 30.57,
+      "best_model_on_test_mae": "Previous-Day Baseline"
+    },
+    "feature_importances": {
+      "lag_1": 0.8578,
+      "lag_high_conf": 0.0336,
+      "rolling_max_7": 0.0171,
+      "rolling_mean_7": 0.0132,
+      "day_of_week": 0.0123,
+      "delta_lag1_lag2": 0.0109,
+      "rolling_min_7": 0.0072,
+      "cos_day_of_year": 0.007,
+      "lag_2": 0.0064,
+      "lag_mean_frp": 0.0062,
+      "rolling_std_7": 0.0061,
+      "lag_7": 0.0057,
+      "lag_3": 0.0056,
+      "sin_day_of_year": 0.005,
+      "delta_lag1_lag7": 0.0048,
+      "month": 0.0011
+    },
+    "mape_scientific_note": "For global daily active-fire counts (range: 25k - 134k), true values are strictly non-zero, making MAPE well-defined. However, when evaluating localized sub-regions with near-zero counts, MAPE would be mathematically unstable; MAE provides the primary robust benchmark across all regimes."
+  },
+  "next_day_forecast": {
+    "reference_observation_date": "2026-10-15",
+    "target_forecast_date": "2026-10-16",
+    "reference_observed_count": 59476,
+    "predicted_count_rf": 59444.5,
+    "predicted_count_rounded": 59445,
+    "predicted_count_persistence": 59476,
+    "predicted_count_ma7": 55100.9,
+    "expected_24h_change": -31.5,
+    "model_used": "RandomForestRegressor (150 trees, max_depth=8, trained strictly on pre-split historical data)",
+    "confidence_band_mae": 9578.5,
+    "lower_bound_approx": 49866,
+    "upper_bound_approx": 69023,
+    "features_used": {
+      "lag_1": 59476.0,
+      "lag_2": 62489.0,
+      "lag_3": 58943.0,
+      "lag_7": 62838.0,
+      "rolling_mean_7": 55100.86,
+      "rolling_std_7": 13260.31,
+      "rolling_min_7": 25794.0,
+      "rolling_max_7": 62838.0,
+      "delta_lag1_lag2": -3013.0,
+      "delta_lag1_lag7": -3362.0,
+      "lag_mean_frp": 8.45,
+      "lag_high_conf": 3737.0,
+      "day_of_week": 4.0,
+      "month": 10.0,
+      "sin_day_of_year": -0.97,
+      "cos_day_of_year": 0.26
+    }
+  },
+  "test_daily_records": [
+    {
+      "date": "2026-08-01",
+      "actual_count": 93327,
+      "rf_prediction": 106359.3,
+      "persistence_prediction": 92968,
+      "ma7_prediction": 72390.0,
+      "rf_error": 13032.3
+    },
+    {
+      "date": "2026-08-02",
+      "actual_count": 72406,
+      "rf_prediction": 97309.7,
+      "persistence_prediction": 93327,
+      "ma7_prediction": 74350.4,
+      "rf_error": 24903.7
+    },
+    {
+      "date": "2026-08-03",
+      "actual_count": 74995,
+      "rf_prediction": 73238.1,
+      "persistence_prediction": 72406,
+      "ma7_prediction": 75341.9,
+      "rf_error": 1756.9
+    },
+    {
+      "date": "2026-08-04",
+      "actual_count": 83526,
+      "rf_prediction": 74999.8,
+      "persistence_prediction": 74995,
+      "ma7_prediction": 76277.6,
+      "rf_error": 8526.2
+    },
+    {
+      "date": "2026-08-05",
+      "actual_count": 96899,
+      "rf_prediction": 79685.7,
+      "persistence_prediction": 83526,
+      "ma7_prediction": 78933.9,
+      "rf_error": 17213.3
+    },
+    {
+      "date": "2026-08-06",
+      "actual_count": 123232,
+      "rf_prediction": 105254.6,
+      "persistence_prediction": 96899,
+      "ma7_prediction": 83304.1,
+      "rf_error": 17977.4
+    },
+    {
+      "date": "2026-08-07",
+      "actual_count": 92981,
+      "rf_prediction": 107733.1,
+      "persistence_prediction": 123232,
+      "ma7_prediction": 91050.4,
+      "rf_error": 14752.1
+    },
+    {
+      "date": "2026-08-08",
+      "actual_count": 85154,
+      "rf_prediction": 100890.1,
+      "persistence_prediction": 92981,
+      "ma7_prediction": 91052.3,
+      "rf_error": 15736.1
+    },
+    {
+      "date": "2026-08-09",
+      "actual_count": 71362,
+      "rf_prediction": 79827.1,
+      "persistence_prediction": 85154,
+      "ma7_prediction": 89884.7,
+      "rf_error": 8465.1
+    },
+    {
+      "date": "2026-08-10",
+      "actual_count": 84250,
+      "rf_prediction": 66103.4,
+      "persistence_prediction": 71362,
+      "ma7_prediction": 89735.6,
+      "rf_error": 18146.6
+    },
+    {
+      "date": "2026-08-11",
+      "actual_count": 77552,
+      "rf_prediction": 86452.1,
+      "persistence_prediction": 84250,
+      "ma7_prediction": 91057.7,
+      "rf_error": 8900.1
+    },
+    {
+      "date": "2026-08-12",
+      "actual_count": 81502,
+      "rf_prediction": 71994.4,
+      "persistence_prediction": 77552,
+      "ma7_prediction": 90204.3,
+      "rf_error": 9507.6
+    },
+    {
+      "date": "2026-08-13",
+      "actual_count": 76974,
+      "rf_prediction": 76115.8,
+      "persistence_prediction": 81502,
+      "ma7_prediction": 88004.7,
+      "rf_error": 858.2
+    },
+    {
+      "date": "2026-08-14",
+      "actual_count": 68180,
+      "rf_prediction": 71731.3,
+      "persistence_prediction": 76974,
+      "ma7_prediction": 81396.4,
+      "rf_error": 3551.3
+    },
+    {
+      "date": "2026-08-15",
+      "actual_count": 73940,
+      "rf_prediction": 63508.8,
+      "persistence_prediction": 68180,
+      "ma7_prediction": 77853.4,
+      "rf_error": 10431.2
+    },
+    {
+      "date": "2026-08-16",
+      "actual_count": 74600,
+      "rf_prediction": 65459.8,
+      "persistence_prediction": 73940,
+      "ma7_prediction": 76251.4,
+      "rf_error": 9140.2
+    },
+    {
+      "date": "2026-08-17",
+      "actual_count": 103510,
+      "rf_prediction": 74560.6,
+      "persistence_prediction": 74600,
+      "ma7_prediction": 76714.0,
+      "rf_error": 28949.4
+    },
+    {
+      "date": "2026-08-18",
+      "actual_count": 111491,
+      "rf_prediction": 106015.6,
+      "persistence_prediction": 103510,
+      "ma7_prediction": 79465.4,
+      "rf_error": 5475.4
+    },
+    {
+      "date": "2026-08-19",
+      "actual_count": 114290,
+      "rf_prediction": 101513.6,
+      "persistence_prediction": 111491,
+      "ma7_prediction": 84313.9,
+      "rf_error": 12776.4
+    },
+    {
+      "date": "2026-08-20",
+      "actual_count": 103531,
+      "rf_prediction": 102831.1,
+      "persistence_prediction": 114290,
+      "ma7_prediction": 88997.9,
+      "rf_error": 699.9
+    },
+    {
+      "date": "2026-08-21",
+      "actual_count": 106921,
+      "rf_prediction": 99543.2,
+      "persistence_prediction": 103531,
+      "ma7_prediction": 92791.7,
+      "rf_error": 7377.8
+    },
+    {
+      "date": "2026-08-22",
+      "actual_count": 123264,
+      "rf_prediction": 96613.7,
+      "persistence_prediction": 106921,
+      "ma7_prediction": 98326.1,
+      "rf_error": 26650.3
+    },
+    {
+      "date": "2026-08-23",
+      "actual_count": 112456,
+      "rf_prediction": 105293.2,
+      "persistence_prediction": 123264,
+      "ma7_prediction": 105372.4,
+      "rf_error": 7162.8
+    },
+    {
+      "date": "2026-08-24",
+      "actual_count": 114823,
+      "rf_prediction": 97591.2,
+      "persistence_prediction": 112456,
+      "ma7_prediction": 110780.4,
+      "rf_error": 17231.8
+    },
+    {
+      "date": "2026-08-25",
+      "actual_count": 114797,
+      "rf_prediction": 97594.4,
+      "persistence_prediction": 114823,
+      "ma7_prediction": 112396.6,
+      "rf_error": 17202.6
+    },
+    {
+      "date": "2026-08-26",
+      "actual_count": 126384,
+      "rf_prediction": 98344.1,
+      "persistence_prediction": 114797,
+      "ma7_prediction": 112868.9,
+      "rf_error": 28039.9
+    },
+    {
+      "date": "2026-08-27",
+      "actual_count": 130625,
+      "rf_prediction": 101221.7,
+      "persistence_prediction": 126384,
+      "ma7_prediction": 114596.6,
+      "rf_error": 29403.3
+    },
+    {
+      "date": "2026-08-28",
+      "actual_count": 100589,
+      "rf_prediction": 94367.9,
+      "persistence_prediction": 130625,
+      "ma7_prediction": 118467.1,
+      "rf_error": 6221.1
+    },
+    {
+      "date": "2026-08-29",
+      "actual_count": 85052,
+      "rf_prediction": 95298.1,
+      "persistence_prediction": 100589,
+      "ma7_prediction": 117562.6,
+      "rf_error": 10246.1
+    },
+    {
+      "date": "2026-08-30",
+      "actual_count": 80728,
+      "rf_prediction": 78190.5,
+      "persistence_prediction": 85052,
+      "ma7_prediction": 112103.7,
+      "rf_error": 2537.5
+    },
+    {
+      "date": "2026-08-31",
+      "actual_count": 103373,
+      "rf_prediction": 73398.4,
+      "persistence_prediction": 80728,
+      "ma7_prediction": 107571.1,
+      "rf_error": 29974.6
+    },
+    {
+      "date": "2026-09-01",
+      "actual_count": 134678,
+      "rf_prediction": 108539.5,
+      "persistence_prediction": 103373,
+      "ma7_prediction": 105935.4,
+      "rf_error": 26138.5
+    },
+    {
+      "date": "2026-09-02",
+      "actual_count": 115068,
+      "rf_prediction": 107271.1,
+      "persistence_prediction": 134678,
+      "ma7_prediction": 108775.6,
+      "rf_error": 7796.9
+    },
+    {
+      "date": "2026-09-03",
+      "actual_count": 86121,
+      "rf_prediction": 102845.4,
+      "persistence_prediction": 115068,
+      "ma7_prediction": 107159.0,
+      "rf_error": 16724.4
+    },
+    {
+      "date": "2026-09-04",
+      "actual_count": 76573,
+      "rf_prediction": 92019.2,
+      "persistence_prediction": 86121,
+      "ma7_prediction": 100801.3,
+      "rf_error": 15446.2
+    },
+    {
+      "date": "2026-09-05",
+      "actual_count": 60545,
+      "rf_prediction": 71893.6,
+      "persistence_prediction": 76573,
+      "ma7_prediction": 97370.4,
+      "rf_error": 11348.6
+    },
+    {
+      "date": "2026-09-06",
+      "actual_count": 58436,
+      "rf_prediction": 62109.0,
+      "persistence_prediction": 60545,
+      "ma7_prediction": 93869.4,
+      "rf_error": 3673.0
+    },
+    {
+      "date": "2026-09-07",
+      "actual_count": 62207,
+      "rf_prediction": 66058.2,
+      "persistence_prediction": 58436,
+      "ma7_prediction": 90684.9,
+      "rf_error": 3851.2
+    },
+    {
+      "date": "2026-09-08",
+      "actual_count": 59853,
+      "rf_prediction": 62633.7,
+      "persistence_prediction": 62207,
+      "ma7_prediction": 84804.0,
+      "rf_error": 2780.7
+    },
+    {
+      "date": "2026-09-09",
+      "actual_count": 47567,
+      "rf_prediction": 63842.3,
+      "persistence_prediction": 59853,
+      "ma7_prediction": 74114.7,
+      "rf_error": 16275.3
+    },
+    {
+      "date": "2026-09-10",
+      "actual_count": 59017,
+      "rf_prediction": 55618.7,
+      "persistence_prediction": 47567,
+      "ma7_prediction": 64471.7,
+      "rf_error": 3398.3
+    },
+    {
+      "date": "2026-09-11",
+      "actual_count": 59663,
+      "rf_prediction": 60568.2,
+      "persistence_prediction": 59017,
+      "ma7_prediction": 60599.7,
+      "rf_error": 905.2
+    },
+    {
+      "date": "2026-09-12",
+      "actual_count": 67300,
+      "rf_prediction": 58261.3,
+      "persistence_prediction": 59663,
+      "ma7_prediction": 58184.0,
+      "rf_error": 9038.7
+    },
+    {
+      "date": "2026-09-13",
+      "actual_count": 62700,
+      "rf_prediction": 59384.7,
+      "persistence_prediction": 67300,
+      "ma7_prediction": 59149.0,
+      "rf_error": 3315.3
+    },
+    {
+      "date": "2026-09-14",
+      "actual_count": 83945,
+      "rf_prediction": 66080.9,
+      "persistence_prediction": 62700,
+      "ma7_prediction": 59758.1,
+      "rf_error": 17864.1
+    },
+    {
+      "date": "2026-09-15",
+      "actual_count": 83891,
+      "rf_prediction": 81366.5,
+      "persistence_prediction": 83945,
+      "ma7_prediction": 62863.6,
+      "rf_error": 2524.5
+    },
+    {
+      "date": "2026-09-16",
+      "actual_count": 85475,
+      "rf_prediction": 80047.5,
+      "persistence_prediction": 83891,
+      "ma7_prediction": 66297.6,
+      "rf_error": 5427.5
+    },
+    {
+      "date": "2026-09-17",
+      "actual_count": 80955,
+      "rf_prediction": 86161.9,
+      "persistence_prediction": 85475,
+      "ma7_prediction": 71713.0,
+      "rf_error": 5206.9
+    },
+    {
+      "date": "2026-09-18",
+      "actual_count": 74023,
+      "rf_prediction": 74281.0,
+      "persistence_prediction": 80955,
+      "ma7_prediction": 74847.0,
+      "rf_error": 258.0
+    },
+    {
+      "date": "2026-09-19",
+      "actual_count": 61808,
+      "rf_prediction": 66331.3,
+      "persistence_prediction": 74023,
+      "ma7_prediction": 76898.4,
+      "rf_error": 4523.3
+    },
+    {
+      "date": "2026-09-20",
+      "actual_count": 59977,
+      "rf_prediction": 60798.1,
+      "persistence_prediction": 61808,
+      "ma7_prediction": 76113.9,
+      "rf_error": 821.1
+    },
+    {
+      "date": "2026-09-21",
+      "actual_count": 53143,
+      "rf_prediction": 64996.0,
+      "persistence_prediction": 59977,
+      "ma7_prediction": 75724.9,
+      "rf_error": 11853.0
+    },
+    {
+      "date": "2026-09-22",
+      "actual_count": 50993,
+      "rf_prediction": 55071.5,
+      "persistence_prediction": 53143,
+      "ma7_prediction": 71324.6,
+      "rf_error": 4078.5
+    },
+    {
+      "date": "2026-09-23",
+      "actual_count": 56601,
+      "rf_prediction": 53943.9,
+      "persistence_prediction": 50993,
+      "ma7_prediction": 66624.9,
+      "rf_error": 2657.1
+    },
+    {
+      "date": "2026-09-24",
+      "actual_count": 56156,
+      "rf_prediction": 56206.4,
+      "persistence_prediction": 56601,
+      "ma7_prediction": 62500.0,
+      "rf_error": 50.4
+    },
+    {
+      "date": "2026-09-25",
+      "actual_count": 56040,
+      "rf_prediction": 53419.9,
+      "persistence_prediction": 56156,
+      "ma7_prediction": 58957.3,
+      "rf_error": 2620.1
+    },
+    {
+      "date": "2026-09-26",
+      "actual_count": 52594,
+      "rf_prediction": 53586.4,
+      "persistence_prediction": 56040,
+      "ma7_prediction": 56388.3,
+      "rf_error": 992.4
+    },
+    {
+      "date": "2026-09-27",
+      "actual_count": 51618,
+      "rf_prediction": 50998.6,
+      "persistence_prediction": 52594,
+      "ma7_prediction": 55072.0,
+      "rf_error": 619.4
+    },
+    {
+      "date": "2026-09-28",
+      "actual_count": 63475,
+      "rf_prediction": 52576.9,
+      "persistence_prediction": 51618,
+      "ma7_prediction": 53877.9,
+      "rf_error": 10898.1
+    },
+    {
+      "date": "2026-09-29",
+      "actual_count": 55037,
+      "rf_prediction": 60822.7,
+      "persistence_prediction": 63475,
+      "ma7_prediction": 55353.9,
+      "rf_error": 5785.7
+    },
+    {
+      "date": "2026-09-30",
+      "actual_count": 42220,
+      "rf_prediction": 51645.9,
+      "persistence_prediction": 55037,
+      "ma7_prediction": 55931.6,
+      "rf_error": 9425.9
+    },
+    {
+      "date": "2026-10-01",
+      "actual_count": 36512,
+      "rf_prediction": 44568.8,
+      "persistence_prediction": 42220,
+      "ma7_prediction": 53877.1,
+      "rf_error": 8056.8
+    },
+    {
+      "date": "2026-10-02",
+      "actual_count": 38248,
+      "rf_prediction": 38405.8,
+      "persistence_prediction": 36512,
+      "ma7_prediction": 51070.9,
+      "rf_error": 157.8
+    },
+    {
+      "date": "2026-10-03",
+      "actual_count": 45069,
+      "rf_prediction": 38586.5,
+      "persistence_prediction": 38248,
+      "ma7_prediction": 48529.1,
+      "rf_error": 6482.5
+    },
+    {
+      "date": "2026-10-04",
+      "actual_count": 46437,
+      "rf_prediction": 44049.3,
+      "persistence_prediction": 45069,
+      "ma7_prediction": 47454.1,
+      "rf_error": 2387.7
+    },
+    {
+      "date": "2026-10-05",
+      "actual_count": 50609,
+      "rf_prediction": 49141.4,
+      "persistence_prediction": 46437,
+      "ma7_prediction": 46714.0,
+      "rf_error": 1467.6
+    },
+    {
+      "date": "2026-10-06",
+      "actual_count": 57084,
+      "rf_prediction": 51781.1,
+      "persistence_prediction": 50609,
+      "ma7_prediction": 44876.0,
+      "rf_error": 5302.9
+    },
+    {
+      "date": "2026-10-07",
+      "actual_count": 65539,
+      "rf_prediction": 55582.6,
+      "persistence_prediction": 57084,
+      "ma7_prediction": 45168.4,
+      "rf_error": 9956.4
+    },
+    {
+      "date": "2026-10-08",
+      "actual_count": 64936,
+      "rf_prediction": 58114.6,
+      "persistence_prediction": 65539,
+      "ma7_prediction": 48499.7,
+      "rf_error": 6821.4
+    },
+    {
+      "date": "2026-10-09",
+      "actual_count": 62838,
+      "rf_prediction": 57424.3,
+      "persistence_prediction": 64936,
+      "ma7_prediction": 52560.3,
+      "rf_error": 5413.7
+    },
+    {
+      "date": "2026-10-10",
+      "actual_count": 61955,
+      "rf_prediction": 59603.2,
+      "persistence_prediction": 62838,
+      "ma7_prediction": 56073.1,
+      "rf_error": 2351.8
+    },
+    {
+      "date": "2026-10-11",
+      "actual_count": 54211,
+      "rf_prediction": 58402.9,
+      "persistence_prediction": 61955,
+      "ma7_prediction": 58485.4,
+      "rf_error": 4191.9
+    },
+    {
+      "date": "2026-10-12",
+      "actual_count": 25794,
+      "rf_prediction": 52466.1,
+      "persistence_prediction": 54211,
+      "ma7_prediction": 59596.0,
+      "rf_error": 26672.1
+    },
+    {
+      "date": "2026-10-13",
+      "actual_count": 58943,
+      "rf_prediction": 31666.1,
+      "persistence_prediction": 25794,
+      "ma7_prediction": 56051.0,
+      "rf_error": 27276.9
+    },
+    {
+      "date": "2026-10-14",
+      "actual_count": 62489,
+      "rf_prediction": 60278.7,
+      "persistence_prediction": 58943,
+      "ma7_prediction": 56316.6,
+      "rf_error": 2210.3
+    },
+    {
+      "date": "2026-10-15",
+      "actual_count": 59476,
+      "rf_prediction": 59544.5,
+      "persistence_prediction": 62489,
+      "ma7_prediction": 55880.9,
+      "rf_error": 68.5
+    }
+  ]
+}
