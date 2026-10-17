@@ -53,14 +53,21 @@ DEFAULT_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:4173",
     "http://127.0.0.1:4173",
+    "https://geosenseai-henna.vercel.app",
 ]
 env_origins = os.getenv("ALLOWED_ORIGINS")
-allowed_origins = [o.strip() for o in env_origins.split(",") if o.strip()] if env_origins else DEFAULT_ALLOWED_ORIGINS
+if env_origins:
+    allowed_origins = [o.strip() for o in env_origins.split(",") if o.strip()]
+    for def_origin in DEFAULT_ALLOWED_ORIGINS:
+        if def_origin not in allowed_origins:
+            allowed_origins.append(def_origin)
+else:
+    allowed_origins = list(DEFAULT_ALLOWED_ORIGINS)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"https?://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["GET", "OPTIONS"],
     allow_headers=["*"],

@@ -116,6 +116,7 @@ def test_cors_middleware_configuration():
     assert "*" not in allowed_origins
     assert "http://localhost:5173" in allowed_origins
     assert "http://127.0.0.1:5173" in allowed_origins
+    assert "https://geosenseai-henna.vercel.app" in allowed_origins
 
     # Allowed methods should be strictly read-only GET and OPTIONS
     allowed_methods = kwargs.get("allow_methods", [])
@@ -125,6 +126,7 @@ def test_cors_middleware_configuration():
     import re
     origin_regex = kwargs.get("allow_origin_regex")
     assert origin_regex is not None
+    assert re.match(origin_regex, "https://geosenseai-henna.vercel.app")
     assert re.match(origin_regex, "https://geosenseai.vercel.app")
     assert re.match(origin_regex, "https://geosense-ai-preview-abc.vercel.app")
 

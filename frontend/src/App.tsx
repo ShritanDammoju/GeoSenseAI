@@ -33,6 +33,7 @@ export function App() {
   // Backend Health Integration
   const [backendHealth, setBackendHealth] = useState<BackendHealth | null>(null);
   const [backendLoading, setBackendLoading] = useState<boolean>(false);
+  const [backendError, setBackendError] = useState<string | null>(null);
 
   // Authentic Processed NASA FIRMS Data
   const [authenticRegion, setAuthenticRegion] = useState<RegionData | null>(null);
@@ -142,17 +143,26 @@ export function App() {
 
   const checkBackendHealth = async () => {
     setBackendLoading(true);
+    setBackendError(null);
     try {
       const response = await fetch(API_ENDPOINTS.health);
       if (response.ok) {
         const data = await response.json();
         setBackendHealth(data);
+        setBackendError(null);
         await Promise.all([fetchProcessedData(), fetchLiveFirmsData(false)]);
       } else {
         setBackendHealth(null);
+        setBackendError(`HTTP ${response.status}: ${response.statusText || 'Health check failed'}`);
       }
-    } catch {
+    } catch (err: unknown) {
       setBackendHealth(null);
+      const isCorsOrNet = (err as Error)?.message?.includes('Failed to fetch') || (err as Error)?.name === 'TypeError';
+      const msg = isCorsOrNet
+        ? 'CORS or Network Error (Backend unreachable from this origin)'
+        : (err instanceof Error ? err.message : 'Connection failed');
+      setBackendError(msg);
+      console.warn('Backend connection error:', err);
     } finally {
       setBackendLoading(false);
     }
@@ -169,17 +179,27 @@ export function App() {
           if (response.ok) {
             const data = await response.json();
             setBackendHealth(data);
+            setBackendError(null);
             await Promise.all([
               fetchProcessedData(),
               fetchLiveFirmsData(false, controller.signal)
             ]);
           } else {
             setBackendHealth(null);
+            setBackendError(`HTTP ${response.status}: ${response.statusText || 'Health check failed'}`);
           }
         }
       } catch (err: unknown) {
         if ((err as Error)?.name === 'AbortError') return;
-        if (isMounted) setBackendHealth(null);
+        const isCorsOrNet = (err as Error)?.message?.includes('Failed to fetch') || (err as Error)?.name === 'TypeError';
+        const msg = isCorsOrNet
+          ? 'CORS or Network Error (Backend unreachable from this origin)'
+          : (err instanceof Error ? err.message : 'Connection failed');
+        if (isMounted) {
+          setBackendHealth(null);
+          setBackendError(msg);
+          console.warn('Backend init error:', err);
+        }
       }
     };
     init();
@@ -219,6 +239,7 @@ export function App() {
         }}
         backendHealth={backendHealth}
         backendLoading={backendLoading}
+        backendError={backendError}
         onRefreshHealth={checkBackendHealth}
       />
 
@@ -248,6 +269,7 @@ export function App() {
                 region={currentRegion}
                 backendHealth={backendHealth}
                 backendLoading={backendLoading}
+                backendError={backendError}
                 onNavigateTab={setActiveTab}
                 liveData={liveFirmsData}
                 liveLoading={liveLoading}

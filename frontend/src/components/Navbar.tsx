@@ -18,6 +18,7 @@ interface NavbarProps {
   onTabChange: (tab: TabType) => void;
   backendHealth: BackendHealth | null;
   backendLoading: boolean;
+  backendError?: string | null;
   onRefreshHealth: () => void;
 }
 
@@ -26,6 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onTabChange,
   backendHealth,
   backendLoading,
+  backendError = null,
   onRefreshHealth,
 }) => {
   const navItems: { id: TabType; label: string; icon: React.ReactNode }[] = [
@@ -81,7 +83,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               Online {backendHealth.firms_map_key_configured ? '(NASA Live)' : '(Active)'}
             </span>
           ) : (
-            <span className="status-badge offline" title={`Backend offline at ${API_BASE_URL}`}>
+            <span
+              className="status-badge offline"
+              title={backendError ? `Backend offline at ${API_BASE_URL} (${backendError})` : `Backend offline at ${API_BASE_URL}`}
+            >
               <span className="dot dot-red"></span>
               Offline
             </span>

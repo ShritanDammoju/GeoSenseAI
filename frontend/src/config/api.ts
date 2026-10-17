@@ -6,10 +6,9 @@
  * Automatically strips trailing slashes to guarantee clean endpoint URLs.
  */
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const cleanedBaseUrl = typeof rawBaseUrl === 'string' ? rawBaseUrl.trim().replace(/\/+$/, '') : '';
 
-export const API_BASE_URL: string = rawBaseUrl
-  ? String(rawBaseUrl).trim().replace(/\/+$/, '')
-  : 'http://127.0.0.1:8000';
+export const API_BASE_URL: string = cleanedBaseUrl || 'http://127.0.0.1:8000';
 
 export const API_ENDPOINTS = {
   health: `${API_BASE_URL}/health`,

@@ -24,6 +24,7 @@ interface DashboardOverviewProps {
   region: RegionData;
   backendHealth: BackendHealth | null;
   backendLoading: boolean;
+  backendError?: string | null;
   onNavigateTab: (tab: TabType) => void;
   liveData?: LiveFirmsPayload | null;
   liveLoading?: boolean;
@@ -35,6 +36,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   region,
   backendHealth,
   backendLoading,
+  backendError = null,
   onNavigateTab,
   liveData = null,
   liveLoading = false,
@@ -252,7 +254,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <span className="status-title">Python FastAPI Service</span>
             <div className="status-val-row">
               {backendLoading ? (
-                <span className="text-amber">Checking local server...</span>
+                <span className="text-amber">Connecting to backend...</span>
               ) : backendHealth ? (
                 <>
                   <CheckCircle2 size={16} className="text-emerald" />
@@ -268,7 +270,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <p className="status-note">
               {backendHealth
                 ? 'Health endpoint responding with status: healthy.'
-                : 'Start with: .\\venv\\Scripts\\python.exe -m uvicorn app.main:app'}
+                : backendError
+                ? `Diagnostic: ${backendError}`
+                : 'Start local server or verify Render backend deployment.'}
             </p>
           </div>
 
