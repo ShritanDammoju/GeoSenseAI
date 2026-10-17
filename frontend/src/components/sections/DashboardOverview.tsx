@@ -2,6 +2,7 @@ import type { RegionData, BackendHealth, TabType, LiveFirmsPayload } from '../..
 import { StatCard } from '../StatCard';
 import { ChartView } from '../ChartView';
 import { LiveTelemetryCard } from '../LiveTelemetryCard';
+import heroImage from '../../assets/earth_satellite_hero.jpg';
 import { 
   Flame, 
   Sparkles, 
@@ -9,9 +10,13 @@ import {
   TrendingUp, 
   CheckCircle2, 
   XCircle, 
-  ArrowRight,
-  ShieldAlert,
-  Info
+  ArrowRight, 
+  ShieldAlert, 
+  Info,
+  Satellite,
+  ShieldCheck,
+  MapPin,
+  AlertCircle
 } from 'lucide-react';
 
 interface DashboardOverviewProps {
@@ -37,21 +42,61 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 }) => {
   return (
     <div className="section-container dashboard-overview">
-      {/* Intro Banner */}
-      <div className="hero-card">
+      {/* Cinematic Earth Observation Satellite Hero Banner */}
+      <div 
+        className="hero-card with-satellite-bg"
+        style={{
+          backgroundImage: `linear-gradient(135deg, rgba(6, 17, 13, 0.90) 0%, rgba(10, 27, 21, 0.82) 45%, rgba(6, 17, 13, 0.94) 100%), url(${heroImage})`
+        }}
+      >
         <div className="hero-content">
-          <div className="hero-badge">
-            <Flame size={14} className="hero-flame-icon" />
-            <span>Environmental Telemetry & Forecasting</span>
+          <div className="hero-badge-row">
+            <div className="hero-badge">
+              <Flame size={14} className="hero-flame-icon" />
+              <span>NASA FIRMS Active Telemetry</span>
+            </div>
+            <div className="hero-sensor-badge">
+              <Satellite size={13} className="hero-sensor-icon" />
+              <span>VIIRS NOAA-20 (375m)</span>
+            </div>
+            <div className="hero-orbit-badge">
+              <span className="hero-pulse-dot" />
+              <span>Continuous Earth Observation</span>
+            </div>
           </div>
-          <h1 className="hero-title">GeoSense AI</h1>
-          <p className="hero-subtitle">
-            Forecasting next-day satellite-observed active-fire detection counts using historical NASA FIRMS data.
+
+          <h1 className="hero-title">
+            GeoSense <span className="hero-title-accent">AI</span>
+          </h1>
+          <p className="hero-tagline">
+            Next-Day Global Hotspot Forecasting via Satellite Thermal Radiance
           </p>
           <p className="hero-description">
             Wildfires and thermal hotspot events exhibit distinct temporal persistence, spatial clustering, and seasonal acceleration.
-            GeoSense AI aggregates daily satellite observations and models temporal dynamics to predict next-day fire counts across sensitive biomes.
+            GeoSense AI ingests 33.72M observations from the NOAA-20 VIIRS sensor (375m resolution), aggregates continuous daily global time-series, and fits leak-free forecasting models benchmarked against empirical baselines.
           </p>
+
+          <div className="hero-key-stats">
+            <div className="hero-stat-card">
+              <span className="hero-stat-val">33.72M</span>
+              <span className="hero-stat-lbl">Observations Ingested</span>
+            </div>
+            <div className="hero-stat-divider" />
+            <div className="hero-stat-card">
+              <span className="hero-stat-val">654</span>
+              <span className="hero-stat-lbl">Continuous Days</span>
+            </div>
+            <div className="hero-stat-divider" />
+            <div className="hero-stat-card">
+              <span className="hero-stat-val">0</span>
+              <span className="hero-stat-lbl">Missing Calendar Days</span>
+            </div>
+            <div className="hero-stat-divider" />
+            <div className="hero-stat-card">
+              <span className="hero-stat-val">375m</span>
+              <span className="hero-stat-lbl">Nadir Resolution</span>
+            </div>
+          </div>
           
           <div className="hero-actions">
             <button className="primary-action-btn" onClick={() => onNavigateTab('forecast')}>
@@ -62,13 +107,20 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               <Layers size={16} />
               <span>Explore Model Lab</span>
             </button>
+            <button className="tertiary-action-btn" onClick={() => onNavigateTab('quality')}>
+              <ShieldCheck size={16} />
+              <span>Data Provenance</span>
+            </button>
           </div>
         </div>
 
-        {/* Selected Region Quick Summary */}
-        <div className="region-highlight-card">
+        {/* Selected Region Quick Summary with Glassmorphism */}
+        <div className="region-highlight-card glass-panel">
           <div className="region-header">
-            <span className="region-meta-tag">Active Monitored Zone</span>
+            <div className="region-header-left">
+              <MapPin size={14} className="region-icon" />
+              <span className="region-meta-tag">Active Monitored Zone</span>
+            </div>
             {region.isAuthenticData ? (
               <span className="nasa-pill">AUTHENTIC NASA FIRMS</span>
             ) : (
@@ -83,6 +135,12 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <span>Latest Satellite Observation:</span>
             <strong>{region.latestObservedDate} {region.observationStatus === 'partial_or_near_real_time' ? '(Partial NRT)' : ''}</strong>
           </div>
+          {!region.isAuthenticData && (
+            <div className="region-disclaimer-note">
+              <AlertCircle size={13} className="text-amber" />
+              <span>Simulated regional biome subset for demonstration. Select "Global Monitored Landmasses" for authentic NASA telemetry.</span>
+            </div>
+          )}
         </div>
       </div>
 
