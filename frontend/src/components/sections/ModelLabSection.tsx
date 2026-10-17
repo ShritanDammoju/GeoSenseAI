@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { ModelEvaluationPayload } from '../../types/dashboard';
+import { API_ENDPOINTS } from '../../config/api';
 import { 
   Cpu, 
   Check, 
@@ -33,7 +34,7 @@ export const ModelLabSection: React.FC = () => {
   const [showTestTable, setShowTestTable] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/models/evaluation')
+    fetch(API_ENDPOINTS.modelEvaluation)
       .then((res) => (res.ok ? res.json() : null))
       .then((data: ModelEvaluationPayload | null) => {
         if (data && data.status === 'success') {

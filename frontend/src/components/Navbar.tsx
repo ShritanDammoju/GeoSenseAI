@@ -1,4 +1,5 @@
 import type { TabType, BackendHealth } from '../types/dashboard';
+import { API_BASE_URL } from '../config/api';
 import { 
   Flame, 
   Activity, 
@@ -75,12 +76,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               Checking...
             </span>
           ) : backendHealth ? (
-            <span className="status-badge online" title="Backend is online and serving /health">
+            <span className="status-badge online" title={`Backend is online at ${API_BASE_URL} and serving /health`}>
               <span className="dot dot-green"></span>
-              Online {backendHealth.firms_map_key_configured ? '(NASA Live)' : '(Port 8000)'}
+              Online {backendHealth.firms_map_key_configured ? '(NASA Live)' : '(Active)'}
             </span>
           ) : (
-            <span className="status-badge offline" title="Backend offline. Start with uvicorn app.main:app">
+            <span className="status-badge offline" title={`Backend offline at ${API_BASE_URL}`}>
               <span className="dot dot-red"></span>
               Offline
             </span>
@@ -90,8 +91,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="refresh-health-btn"
             onClick={onRefreshHealth}
             disabled={backendLoading}
-            title="Check connection to http://127.0.0.1:8000/health"
-            aria-label="Check backend connection to port 8000"
+            title={`Check connection to ${API_BASE_URL}/health`}
+            aria-label="Check backend connection health"
           >
             <RefreshCw size={12} className={backendLoading ? 'spinning' : ''} />
           </button>

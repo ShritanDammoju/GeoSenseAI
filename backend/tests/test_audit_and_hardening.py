@@ -121,6 +121,13 @@ def test_cors_middleware_configuration():
     allowed_methods = kwargs.get("allow_methods", [])
     assert set(allowed_methods) == {"GET", "OPTIONS"}
 
+    # Vercel deployment origins should be permitted via regex
+    import re
+    origin_regex = kwargs.get("allow_origin_regex")
+    assert origin_regex is not None
+    assert re.match(origin_regex, "https://geosenseai.vercel.app")
+    assert re.match(origin_regex, "https://geosense-ai-preview-abc.vercel.app")
+
 
 def test_firms_map_key_configuration_and_isolation(monkeypatch):
     """Verify that FIRMS_MAP_KEY is handled securely and never exposed in responses."""

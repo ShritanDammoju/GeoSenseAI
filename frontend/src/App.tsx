@@ -21,6 +21,7 @@ import { ModelLabSection } from './components/sections/ModelLabSection';
 import { HotspotMapSection } from './components/sections/HotspotMapSection';
 import { DataQualitySection } from './components/sections/DataQualitySection';
 import { MethodologySection } from './components/sections/MethodologySection';
+import { API_ENDPOINTS } from './config/api';
 import './App.css';
 
 export function App() {
@@ -44,12 +45,12 @@ export function App() {
   const fetchProcessedData = async () => {
     try {
       // 1. Fetch summary metrics
-      const sumRes = await fetch('http://127.0.0.1:8000/api/time-series/summary');
+      const sumRes = await fetch(API_ENDPOINTS.timeSeriesSummary);
       if (!sumRes.ok) return;
       const summary: SummaryMetricsResponse = await sumRes.json();
 
       // 2. Fetch full global time series (all 654 days)
-      const tsRes = await fetch('http://127.0.0.1:8000/api/time-series/global');
+      const tsRes = await fetch(API_ENDPOINTS.timeSeriesGlobal);
       if (!tsRes.ok) return;
       const tsData = await tsRes.json();
       const records: ProcessedDailyRecord[] = tsData.records || [];
@@ -59,7 +60,7 @@ export function App() {
       // 3. Fetch trained next-day forecast (Stage 5)
       let forecastPayload: NextDayForecastPayload | null = null;
       try {
-        const fcRes = await fetch('http://127.0.0.1:8000/api/forecast/next-day');
+        const fcRes = await fetch(API_ENDPOINTS.forecastNextDay);
         if (fcRes.ok) {
           forecastPayload = await fcRes.json();
         }
@@ -121,9 +122,7 @@ export function App() {
     setLiveLoading(true);
     setLiveError(null);
     try {
-      const url = forceRefresh
-        ? 'http://127.0.0.1:8000/api/firms/live?day_range=1&force_refresh=true'
-        : 'http://127.0.0.1:8000/api/firms/live?day_range=1';
+      const url = API_ENDPOINTS.firmsLive(1, forceRefresh);
       const resp = await fetch(url, { signal });
       if (!resp.ok) {
         const errData = await resp.json().catch(() => ({}));
@@ -144,7 +143,7 @@ export function App() {
   const checkBackendHealth = async () => {
     setBackendLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/health');
+      const response = await fetch(API_ENDPOINTS.health);
       if (response.ok) {
         const data = await response.json();
         setBackendHealth(data);
@@ -165,7 +164,7 @@ export function App() {
 
     const init = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/health', { signal: controller.signal });
+        const response = await fetch(API_ENDPOINTS.health, { signal: controller.signal });
         if (isMounted) {
           if (response.ok) {
             const data = await response.json();

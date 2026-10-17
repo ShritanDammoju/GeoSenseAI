@@ -3,6 +3,7 @@ import { StatCard } from '../StatCard';
 import { ChartView } from '../ChartView';
 import { LiveTelemetryCard } from '../LiveTelemetryCard';
 import heroImage from '../../assets/earth_satellite_hero.jpg';
+import { API_BASE_URL } from '../../config/api';
 import { 
   Flame, 
   Sparkles, 
@@ -255,12 +256,12 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               ) : backendHealth ? (
                 <>
                   <CheckCircle2 size={16} className="text-emerald" />
-                  <span>Online (http://127.0.0.1:8000)</span>
+                  <span>Online ({API_BASE_URL})</span>
                 </>
               ) : (
                 <>
                   <XCircle size={16} className="text-amber" />
-                  <span>Offline (Ready to start on port 8000)</span>
+                  <span>Offline ({API_BASE_URL})</span>
                 </>
               )}
             </div>

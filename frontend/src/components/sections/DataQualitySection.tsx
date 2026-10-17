@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { DataQualityAuditPayload } from '../../types/dashboard';
+import { API_ENDPOINTS } from '../../config/api';
 import { 
   ShieldCheck, 
   Satellite, 
@@ -17,7 +18,7 @@ export const DataQualitySection: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/data-quality')
+    fetch(API_ENDPOINTS.dataQuality)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         return res.json();

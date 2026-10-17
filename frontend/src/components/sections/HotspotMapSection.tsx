@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { RegionData, CountrySummaryRecord } from '../../types/dashboard';
 import { DEMO_REGIONS } from '../../data/demoData';
+import { API_ENDPOINTS } from '../../config/api';
 import { 
   Map as MapIcon, 
   Compass, 
@@ -26,7 +27,7 @@ export const HotspotMapSection: React.FC<HotspotMapSectionProps> = ({
   const [loadingCountries, setLoadingCountries] = useState<boolean>(true);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/countries?limit=12')
+    fetch(API_ENDPOINTS.countries(12))
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { countries: CountrySummaryRecord[] } | null) => {
         if (data && data.countries) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { RegionData, NextDayForecastPayload } from '../../types/dashboard';
+import { API_ENDPOINTS } from '../../config/api';
 import { 
   Sparkles, 
   Calendar, 
@@ -30,7 +31,7 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({ region }) => {
   useEffect(() => {
     let isMounted = true;
     if (region.isAuthenticData) {
-      fetch('http://127.0.0.1:8000/api/forecast/next-day')
+      fetch(API_ENDPOINTS.forecastNextDay)
         .then((res) => (res.ok ? res.json() : null))
         .then((data: NextDayForecastPayload | null) => {
           if (isMounted && data && data.status === 'success') {
